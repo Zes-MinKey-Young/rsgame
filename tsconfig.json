@@ -1,0 +1,19 @@
+{
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		// 游戏业务层（src/api/bot/RSQuery.ts、RSList.ts、data.ts）直接沿用原版 rsgame 的源码，
+		// 那份代码是按 strict: false 写的。为了一个字都不改，这里保持同样的严格度。
+		"strict": false,
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"moduleResolution": "bundler",
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["node"]
+	}
+}

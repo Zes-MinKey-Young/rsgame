@@ -1,0 +1,235 @@
+lang-set:
+  zh-hans: 语言已切换为简体中文
+  zh-hant: 語言已切換為繁體中文
+  en: Language has been switched to English
+rslist-example:
+  zh-hans: |
+    示例：
+    ~rslist
+    完美=6.4
+    -> 扑克 驯鹿 克苏鲁
+
+    ~rslist
+    年份=2025
+    奖励=神秘箱（或者写盒子）
+    -> 25年所有盒子关
+
+    ~rslist
+    年份=2016-2018
+    钻石=20
+    -> 2016-2018所有20钻制关卡
+  zh-hant: |
+    範例：
+    ~rslist
+    完美=6.4
+    -> 扑克 驯鹿 克蘇魯
+
+    ~rslist
+    年份=2025
+    獎勵=神秘箱（或者寫盒子）
+    -> 25年所有盒子關卡
+
+    ~rslist
+    年份=2016-2018
+    鑽石=20
+    -> 2016-2018所有20鑽制關卡
+  en: |
+    Example:
+    ~rslist
+    perfect=6.4
+    -> Poker, Reindeer's Gift, Cthulhu
+
+    ~rslist
+    year=2025
+    award=box
+    -> All levels with mysterious boxes in 2025
+
+    ~rslist
+    year=2016-2018
+    dia=20
+    -> All 20-diamond levels in 2016-2018
+rslist-help:
+  zh-hans: |
+    本命令由滚动的天空Wiki（https://rs.miraheze.org/）提供数据支持。
+    使用参数查询RS关卡。从第二行起，用等号分割键值。
+    支持的条件：
+  zh-hant: |
+    本指令由滾動的天空Wiki（https://rs.miraheze.org/）提供資料支持。
+    使用參數查詢RS關卡。從第二行起，用等號分割鍵值。
+    支援的條件：
+  en: |
+    This command is provided by the Rolling Sky Wiki (chinese) (https://rs.miraheze.org/).
+    Use parameters to query RS levels. From the second line, use an equal sign to separate keys and values.
+    Supported conditions:
+rslist-unknown-key:
+  zh-hans: |
+    未知的键值：%s
+  zh-hant: |
+    未知的鍵值：%s
+  en: |
+    Unknown key: %s
+rslist-duplicate-key:
+  zh-hans: |
+    重复的键值：%s
+  zh-hant: |
+    重複的鍵值：%s
+  en: |
+    Duplicate key: %s
+rslist-missing-conditions:
+  zh-hans: |
+    请至少提供一个条件。
+    从第二行起，用等号分割键值。
+    支持的条件：
+  zh-hant: |
+    請至少提供一個條件。
+    從第二行起，用等號分割鍵值。
+    支援的條件：
+  en: |
+    Please provide at least one condition.
+    From the second line, use an equal sign to separate keys and values.
+    Supported conditions:
+rslist-no-results:
+  zh-hans: |
+    没有找到符合条件的关卡。
+  zh-hant: |
+    沒有找到符合條件的關卡。
+  en: |
+    No results found.
+rshgt-help:
+  zh-hans: 游玩RS海龟汤。
+  zh-hant: 游玩RS海龟湯。
+  en: Play RS Level Puzzle.
+rshgt-already-played:
+  zh-hans: 今天已经玩过每日海龟汤了。
+  zh-hant: 今天已經玩過每日海龜湯了。
+  en: You have already played the daily RS Level Puzzle today.
+rshgt-daily-mode-notice:
+  zh-hans: 请注意海龟汤在本群是每日挑战模式。
+  zh-hant: 請注意海龜湯在本群是每日挑戰模式。
+  en: Note that RS Level Puzzle is a daily challenge in this group.
+rshgt-start:
+  zh-hans: |
+    海龟汤开始！群友们将有10次猜测条件或猜测关卡答案的机会。
+    猜测条件的格式大体和~rslist的一行类似，可以用"=""是""为"作为系动词。
+    无论猜测条件还是答案都需要艾特我哦！
+  zh-hant: |
+    海龜湯開始！群友們將有10次猜測條件或猜測關卡答案的機會。
+    猜測條件的格式大體和~rslist的一行類似，可以用"=""是""為"作為系動詞。
+    無論猜測條件還是答案都需要艾特我哦！
+  en: |
+    RS Level Puzzle starts! Everyone has 10 chances to guess conditions or the level answer.
+    The format for guessing conditions is similar to one line of ~rslist, you can use "=", "is", or "equals" as copula.
+    Remember to mention me for both conditions and answers!
+rshgt-format-error:
+  zh-hans: 格式错误
+  zh-hant: 格式錯誤
+  en: Format error
+rshgt-unknown-condition:
+  zh-hans: 未知条件，支持的条件：
+  zh-hant: 未知條件，支援的條件：
+  en: "Unknown condition, supported conditions:"
+rshgt-num-limit:
+  zh-hans: 询问关卡序号只能使用两次。
+  zh-hant: 詢問關卡序號只能使用兩次。
+  en: You can only ask for level number twice.
+rshgt-no-results:
+  zh-hans: 可能是由于格式错误，此条件没有筛选出任何关卡，此次猜测不计次数。
+  zh-hant: 可能是由於格式錯誤，此條件沒有篩選出任何關卡，此次猜測不計次數。
+  en: Possibly due to format error, this condition didn't match any levels. This guess doesn't count.
+rshgt-unsupported-syntax:
+  zh-hans: 不支持的语法。只能使用"为""是"或"="。可用"-"表述一个闭区间。
+  zh-hant: 不支援的語法。只能使用"為""是"或"="。可用"-"表述一個閉區間。
+  en: Unsupported syntax. You can only use "equals", "is" or "=". Use "-" for a closed interval.
+rshgt-not-a-level:
+  zh-hans: 这不是一个关卡。
+  zh-hant: 這不是一個關卡。
+  en: This is not a level.
+rshgt-correct:
+  zh-hans: 答对了！！！
+  zh-hant: 答對了！！！
+  en: That's correct!!!
+rshgt-wrong:
+  zh-hans: "%s不对，再想想？不是%s"
+  zh-hant: "%s不對，再想想？不是%s"
+  en: "%s Wrong, try again? It's not %s"
+rshgt-no-match:
+  zh-hans: 没有找到相关关卡
+  zh-hant: 沒有找到相關關卡
+  en: No matching level found
+rshgt-game-over:
+  zh-hans: "很遗憾，没有人猜出正确答案。答案是%s"
+  zh-hant: "很遺憾，沒有人猜出正確答案。答案是%s"
+  en: "Unfortunately, nobody guessed the correct answer. The answer is %s"
+rshgt-yes:
+  zh-hans: "是"
+  zh-hant: "是"
+  en: "Yes"
+rshgt-no:
+  zh-hans: "否"
+  zh-hant: "否"
+  en: "No"
+rshgt-remaining-num:
+  zh-hans: "，关卡序号还能使用%d次"
+  zh-hant: "，關卡序號還能使用%d次"
+  en: ", level number has %d remaining chances"
+rs-query-help:
+  zh-hans: |
+    本命令由滚动的天空Wiki（https://rs.miraheze.org/）提供数据支持。
+    可使用关卡名称、外号、关卡编号、对应关卡查询关卡，如：
+    ~rs 月夜剧院主线 -> 音乐剧场
+    ~rs 1 -> 山丘、绝密实验室
+    ~rs Co.1 -> 绝密实验室
+    ~rs 斜角悲->世界杯
+    注：由于饭制关卡还没有显示星级，暂不支持查询饭制关卡。
+  zh-hant: |
+    本指令由滾動的天空Wiki（https://rs.miraheze.org/）提供資料支持。
+    可使用關卡名稱、外號、關卡編號、對應關卡查詢關卡，如：
+    ~rs 月夜劇院主線 -> 音樂劇場
+    ~rs 1 -> 山丘、絕密實驗室
+    ~rs Co.1 -> 絕密實驗室
+    ~rs 斜角悲->世界盃
+    注：由於飯制關卡還沒有顯示星級，暫不支持查詢飯制關卡。
+  en: |
+    This command is provided by the Rolling Sky Wiki (chinese) (https://rs.miraheze.org/).
+    You can use level name, nickname, level number, or corresponding level to query level, such as:
+    ~rs 月夜剧院主线 -> 音乐剧场
+    ~rs 1 -> 山丘、绝密实验室
+    ~rs Co.1 -> 绝密实验室
+    ~rs 斜角悲->世界杯
+    注：由于饭制关卡还没有显示星级，暂不支持查询饭制关卡。
+rs-interger-num:
+  zh-hans: 关卡编号是正整数哦
+  zh-hant: 關卡編號是正整數哦
+  en: Level number is an integer
+rs-dont-abuse:
+  zh-hans: 别闹了，%s同学！
+  zh-hant: 別鬧了，%s同學！
+  en: Stop it, %s!
+rs-dont-abuse-2:
+  zh-hans: 呃呃，不要再玩惹！
+  zh-hant: 呃呃，不要再玩惹！
+  en: Oh no, don't play it!
+rs-too-many-levels:
+  zh-hans: "%s代表的关卡太多了呢，你想找的是一下哪一个：\n"
+  zh-hant: "%s代表的關卡太多了呢，你想找的是一下哪一個：\n"
+  en: "%s represents too many levels, which one do you mean:\n"
+rs-cant-find:
+  zh-hans: "萨卡班没有找到关卡'%s'呢"
+  zh-hant: "薩卡班沒有找到關卡'%s'呢"
+  en: "Sakaban couldn't find level '%s'"
+rs-unknown-style:
+  zh-hans: 未知曲风
+  zh-hant: 未知曲風
+  en: Unknown style
+rs-add:
+  zh-hans: "%s(%s)加入游戏"
+  zh-hant: "%s(%s)加入遊戲"
+  en: "Added to the game in %s(%s)"
+rs-removed:
+  zh-hans: "%s移除"
+  zh-hant: "%s移除"
+  en: "Removed in %s"
+rs-restore:
+  zh-hans: "%s重制回归"
+  zh-hant: "%s重製歸回"
+  en: "Remade and Restored in %s"

@@ -1,0 +1,22 @@
+[build]
+  command = "bun run build"
+  publish = "build"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+
+[dev]
+  command = "bun run dev:web"
+  targetPort = 5173
+  port = 8888
+
+# SPA 兜底：任何未命中的路径都交给前端路由
+# 注意：/api/* 由 netlify/functions/api.ts 里的 `config.path` 直接接管，优先级高于重定向
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
