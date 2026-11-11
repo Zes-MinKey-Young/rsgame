@@ -104,15 +104,77 @@ bun run db:seed       # 幂等创建 root
 
 ## 部署到 Netlify
 
+构建命令、发布目录、函数目录都写在 `netlify.toml` 里，Netlify 会自动读取，不需要在界面上手填。
+
+### 1. 建站
+
+推荐走 Git：把仓库推到 GitHub，然后在 Netlify 里 **Add new site → Import an existing project** 选这个仓库。
+
+也可以用 CLI：
+
 ```bash
-netlify db init       # 创建 Netlify DB，自动注入 NETLIFY_DATABASE_URL
-netlify env:set JWT_SECRET "很长的随机串"
-netlify deploy --prod
+npm i -g netlify-cli
+netlify login
+netlify init          # 关联或新建站点
 ```
 
-- 构建命令 `bun run build`，发布目录 `build`
-- API 通过 `netlify/functions/api.ts` 的 `config.path = '/api/*'` 直接挂载
-- `netlify/functions/cleanup.ts` 是每日定时函数，物理删除超过 7 天保留期的消息
+### 2. 建数据库
+
+```bash
+netlify db init       # 创建 Netlify DB（Neon Postgres），自动注入 NETLIFY_DATABASE_URL
+```
+
+### 3. 配置环境变量
+
+```bash
+netlify env:set JWT_SECRET "一长串随机字符"
+netlify env:set ROOT_PASSWORD "root 的初始密码"
+netlify env:set PUBLIC_OPERATOR "你的运营主体名称"
+```
+
+也可以在 Netlify 界面 **Site configuration → Environment variables** 里加。
+
+> `PUBLIC_OPERATOR` 是**构建期**注入、会被打进前端包的，改了必须重新构建才生效。
+
+### 4. 初始化线上数据库
+
+迁移和 seed 只需对线上库执行一次（Netlify 不会自动跑）：
+
+```powershell
+$env:DATABASE_URL = "从 Netlify 后台 → Environment variables 复制的 NETLIFY_DATABASE_URL"
+bun run db:migrate
+bun run db:seed
+```
+
+Linux/macOS 用 `export DATABASE_URL=...`。
+
+### 5. 部署
+
+- Git 方式：`git push`，Netlify 自动构建
+- CLI 方式：`netlify deploy --build --prod`
+
+### 6. 验收
+
+```bash
+curl https://<你的站点>/api/health     # 应返回 {"ok":true,...}
+```
+
+然后打开站点，用 root 登录，去「邀请码」页生成一个邀请码。
+
+### 部署要点
+
+- API 通过 `netlify/functions/api.ts` 的 `config.path = '/api/*'` 直接挂载，不走重定向
+- `netlify/functions/cleanup.ts` 带 `config.schedule = '@daily'`，每天物理删除超过 7 天保留期的消息
+- Netlify Functions 是无状态、按次计费的，前端 2 秒轮询会持续占用调用次数，小站可接受，人多要留意账单
+
+### 常见故障
+
+| 现象 | 排查方向 |
+| --- | --- |
+| `/api/health` 返回 HTML 而不是 JSON | 函数没被识别。确认 Functions 页签里有 `api`，且 `netlify.toml` 的 `functions` 目录正确 |
+| 函数 500 / 冷启动报错 | 多半是缺 `NETLIFY_DATABASE_URL` 或 `JWT_SECRET`，看 Functions → api → Logs |
+| 安装依赖阶段失败 | Netlify 没识别到 Bun。在环境变量里加 `BUN_VERSION`，或把构建命令改成 `bun install && bun run build` |
+| 页面能开但所有请求 401 | Cookie 没带过去。同域部署默认没问题，自定义域名请确认走的是 HTTPS |
 
 ## Bot 游戏
 
