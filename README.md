@@ -143,10 +143,14 @@ netlify env:set PUBLIC_OPERATOR "你的运营主体名称"
 ```powershell
 $env:DATABASE_URL = "从 Netlify 后台 → Environment variables 复制的 NETLIFY_DATABASE_URL"
 bun run db:migrate
+$env:ROOT_PASSWORD = "root 的初始密码"     # db:seed 只在本机读取，运行时用不到
 bun run db:seed
 ```
 
 Linux/macOS 用 `export DATABASE_URL=...`。
+
+> `db:seed` 是幂等的：root 已存在就直接跳过。所以忘了设 `ROOT_PASSWORD` 导致没建成 root，
+> 补上密码再跑一次即可，不会重复建号。
 
 ### 5. 部署
 
@@ -156,7 +160,13 @@ Linux/macOS 用 `export DATABASE_URL=...`。
 ### 6. 验收
 
 ```bash
-curl https://<你的站点>/api/health     # 应返回 {"ok":true,...}
+# 配置自检：只报告环境变量有没有，不泄露具体值
+curl https://<你的站点>/api/health
+# {"ok":true,"database":"configured","jwt":"configured",...}
+
+# 连通性自检：真正连一次数据库
+curl "https://<你的站点>/api/health?deep=1"
+# {"ok":true,...,"dbPing":"ok"}
 ```
 
 然后打开站点，用 root 登录，去「邀请码」页生成一个邀请码。
@@ -172,7 +182,9 @@ curl https://<你的站点>/api/health     # 应返回 {"ok":true,...}
 | 现象 | 排查方向 |
 | --- | --- |
 | `/api/health` 返回 HTML 而不是 JSON | 函数没被识别。确认 Functions 页签里有 `api`，且 `netlify.toml` 的 `functions` 目录正确 |
-| 函数 500 / 冷启动报错 | 多半是缺 `NETLIFY_DATABASE_URL` 或 `JWT_SECRET`，看 Functions → api → Logs |
+| `/api/*` 一律 502 | 函数启动即崩。先看 Functions → api → Logs；数据库连接串缺失是最常见原因 |
+| 函数返回 500 `缺少数据库连接串…` | `NETLIFY_DATABASE_URL` 没注入。重新 `netlify db init`，或在环境变量里手动加 |
+| 登录报「用户名或密码错误」但确定密码对 | root 没建成功。确认 `db:migrate` 和 `db:seed` 都对着线上库跑过 |
 | 安装依赖阶段失败 | Netlify 没识别到 Bun。在环境变量里加 `BUN_VERSION`，或把构建命令改成 `bun install && bun run build` |
 | 页面能开但所有请求 401 | Cookie 没带过去。同域部署默认没问题，自定义域名请确认走的是 HTTPS |
 

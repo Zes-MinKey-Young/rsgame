@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { DatabaseNotConfiguredError, connectionString, pingDatabase } from '../db';
 import { HttpError } from './lib/http';
 import { authRoutes } from './routes/auth';
 import { inviteRoutes } from './routes/invites';
@@ -28,13 +29,39 @@ export function createApp() {
 	api.route('/users', userRoutes);
 	api.route('/me', meRoutes);
 
-	api.get('/health', (c) => c.json({ ok: true, time: new Date().toISOString() }));
+	/**
+	 * 健康检查 / 部署自检。
+	 * 默认只报告配置是否存在（不泄露任何值）；`?deep=1` 会真正连一次数据库。
+	 */
+	api.get('/health', async (c) => {
+		const result: Record<string, unknown> = {
+			ok: true,
+			time: new Date().toISOString(),
+			database: connectionString() ? 'configured' : 'missing',
+			jwt: process.env.JWT_SECRET ? 'configured' : 'missing'
+		};
+
+		if (c.req.query('deep') === '1' && connectionString()) {
+			try {
+				await pingDatabase();
+				result.dbPing = 'ok';
+			} catch (err) {
+				result.dbPing = `error: ${(err as Error).message}`;
+			}
+		}
+
+		return c.json(result);
+	});
 
 	const app = new Hono();
 
 	app.onError((err, c) => {
 		if (err instanceof HttpError) {
 			return c.json({ error: err.message }, err.status);
+		}
+		if (err instanceof DatabaseNotConfiguredError) {
+			console.error('[api]', err.message);
+			return c.json({ error: err.message }, 500);
 		}
 		console.error('[api] 未处理异常', err);
 		return c.json({ error: '服务器内部错误' }, 500);
