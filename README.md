@@ -112,7 +112,7 @@ bun run db:seed       # 幂等创建 root
 ### 第 0 步：前置
 
 - 一个 Netlify 账号
-- 一个 GitHub 仓库（放本项目）
+- 一个 GitHub 仓库（用本项目 Fork 一个）
 - 本机装好 Bun：`bun --version` 能出版本号
 
 ### 第 1 步：推到 GitHub
@@ -153,7 +153,7 @@ bunx netlify database status   # 应显示 Netlify Database is enabled
 
 ### 第 5 步：复制连接串
 
-在后台 Database 面板里复制 connection string，形如：
+在后台 Database 面板（URL 在上一步）里复制 connection string，形如：
 
 ```
 postgresql://netlifydb_owner:密码@ep-xxx-pooler.区域.aws.neon.tech/neondb?sslmode=require
@@ -169,7 +169,7 @@ postgresql://netlifydb_owner:密码@ep-xxx-pooler.区域.aws.neon.tech/neondb?ss
 $env:DATABASE_URL = "<上一步复制的连接串>"
 bun run db:migrate
 
-$env:ROOT_PASSWORD = "至少8位的root密码"
+$env:ROOT_PASSWORD = "至少8位的root密码（自己设定，后面用它登录）"
 bun run db:seed
 ```
 
@@ -231,6 +231,8 @@ curl "https://<你的站点>/api/health?deep=1"
 3. 点 **上传并替换**
 
 数据存进 **Netlify Blobs**，此后更新都不再消耗构建次数。
+
+> 数据可通过滚动的天空 Wiki 的 NavLevel 小工具产生，如果你启用了该小工具并且缓存已更新至最新，使用 `JSON.stringify(localStorage)` 即可获得所需的最新数据。
 
 > 已预热的函数实例仍持有旧数据，**要等下一次冷启动才生效**。低流量时段可能几分钟，可以过一会儿刷新页面重试。
 
