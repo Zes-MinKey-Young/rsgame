@@ -17,6 +17,7 @@ nav:
   invites: "邀請碼"
   me: "我的"
   logout: "登出"
+  botData: "關卡資料"
 
 role:
   root: "超級管理員"
@@ -131,5 +132,23 @@ tos:
   agree: "我已閱讀並同意上述條款"
   view: "查看服務條款"
   required: "請先閱讀並同意服務條款"
+
+botData:
+  title: "關卡資料"
+  desc: "「~rs」「~rslist」「~rshgt」使用的關卡表。上傳新版本後不需要重新建置站點。"
+  source: "目前資料來源"
+  sourceBlob: "Netlify Blobs（已上傳的版本）"
+  sourceBundled: "建置期內嵌（預設基準）"
+  updatedAt: "上傳時間"
+  uploadedBy: "上傳者"
+  size: "大小"
+  keys: "包含的鍵"
+  choose: "選擇 JSON 檔案"
+  upload: "上傳並取代"
+  uploading: "上傳中…"
+  success: "已上傳。已預熱的函式實例仍持有舊資料，需等待下一次冷啟動才會生效。"
+  notRoot: "只有超級管理員可以管理關卡資料"
+  needFile: "請先選擇檔案"
+  badJson: "檔案內容不是合法的 JSON"
 
 operatorFallback: "（由部署者填寫）"

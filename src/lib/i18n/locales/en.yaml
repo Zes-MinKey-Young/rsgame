@@ -17,6 +17,7 @@ nav:
   invites: "Invites"
   me: "Profile"
   logout: "Sign out"
+  botData: "Level data"
 
 role:
   root: "Super admin"
@@ -131,5 +132,23 @@ tos:
   agree: "I have read and agree to the terms above"
   view: "View terms of service"
   required: "Please read and accept the terms first"
+
+botData:
+  title: "Level data"
+  desc: "The level table used by ~rs, ~rslist and ~rshgt. Uploading a new version does not require a site rebuild."
+  source: "Current source"
+  sourceBlob: "Netlify Blobs (uploaded)"
+  sourceBundled: "Bundled at build time (default baseline)"
+  updatedAt: "Uploaded at"
+  uploadedBy: "Uploaded by"
+  size: "Size"
+  keys: "Keys"
+  choose: "Choose a JSON file"
+  upload: "Upload and replace"
+  uploading: "Uploading…"
+  success: "Uploaded. Warm function instances keep the old data until they restart."
+  notRoot: "Only a super admin can manage level data"
+  needFile: "Please choose a file first"
+  badJson: "The file is not valid JSON"
 
 operatorFallback: "(to be filled in by the deployer)"

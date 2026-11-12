@@ -171,5 +171,22 @@ let userMessageId = 0;
 	check('解封用户', unbanned.status === 200 && unbanned.data.user.permission === 1);
 }
 
+/* 16. 关卡数据管理（仅 ROOT） */
+{
+	const r = await call('/api/bot-data', {}, rootCookie);
+	check('ROOT 读取关卡数据状态', r.status === 200 && !!r.data?.status, r.data?.error);
+	check(
+		'默认使用构建期内联数据',
+		r.data?.status?.source === 'bundled',
+		r.data?.status?.source
+	);
+
+	const denied = await call('/api/bot-data', {}, aliceCookie);
+	check('普通用户读取关卡数据被拒（403）', denied.status === 403, denied.data?.error);
+
+	const invalid = await post('/api/bot-data', { foo: 'bar' }, rootCookie);
+	check('上传缺键的数据被拒（400）', invalid.status === 400, invalid.data?.error);
+}
+
 console.log(`\n通过 ${passed} 项，失败 ${failed} 项`);
 process.exit(failed === 0 ? 0 : 1);

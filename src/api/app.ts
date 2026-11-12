@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { DatabaseNotConfiguredError, connectionString, pingDatabase } from '../db';
 import { HttpError } from './lib/http';
 import { authRoutes } from './routes/auth';
+import { botDataRoutes } from './routes/botData';
 import { inviteRoutes } from './routes/invites';
 import { meRoutes } from './routes/me';
 import { messageRoutes, roomMessageRoutes } from './routes/messages';
@@ -28,6 +29,7 @@ export function createApp() {
 	api.route('/messages', messageRoutes);
 	api.route('/users', userRoutes);
 	api.route('/me', meRoutes);
+	api.route('/bot-data', botDataRoutes);
 
 	/**
 	 * 健康检查 / 部署自检。

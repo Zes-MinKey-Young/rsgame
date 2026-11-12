@@ -1,27 +1,17 @@
 /**
- * localStorage polyfill 的 serverless 版本。
+ * localStorage polyfill（serverless 版）。
  *
- * 原版读写磁盘上的 localStorage.json；Netlify Functions 没有可写文件系统，
- * 因此改为：打包时把 localStorage.json 内联成只读基线，运行时写入落在进程内存里。
- *
- * 游戏逻辑用的是 getObject/getItem 的读取路径，写入只发生在
- * `~rshgt` 的每日限次分支（原版中 limitedGroups 恒为空，属于死代码），
- * 因此内存覆盖层不会影响任何实际行为。
+ * 原版读写磁盘上的 localStorage.json；这里的数据由 data-store 提供：
+ * 优先用 Netlify Blobs 里的版本，没有则退回构建期内联的基线。
+ * 写入只落在进程内存里（游戏逻辑的写入分支实际是死代码）。
  */
 
-import seedData from './localStorage.json';
+import { storageView } from './data-store';
 
 const EXPIRY_SUFFIX = '-EXPIRY';
 
-const storage: Record<string, string> = { ...(seedData as unknown as Record<string, string>) };
-
 function readStorage(): Record<string, string> {
-	return storage;
-}
-
-function writeStorage(next: Record<string, string>): void {
-	for (const key of Object.keys(storage)) delete storage[key];
-	Object.assign(storage, next);
+	return storageView();
 }
 
 export const mw = {
@@ -51,8 +41,8 @@ export const mw = {
 		UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0';
 
 		async get(options: Record<string, string | number>) {
-			const merged: Record<string, string> = { format: 'json' } as Record<string, string>;
-			for (const [key, value] of Object.entries(options)) {
+			const merged: Record<string, string> = {};
+			for (const [key, value] of Object.entries({ format: 'json', ...options })) {
 				merged[key] = String(value);
 			}
 			const url = `${this.ORIGIN}${this.SCRIPT_URI}?${new URLSearchParams(merged).toString()}`;
@@ -80,7 +70,8 @@ export const localStorage = {
 		delete data[key + EXPIRY_SUFFIX];
 	},
 	clear: (): void => {
-		writeStorage({});
+		const data = readStorage();
+		for (const key of Object.keys(data)) delete data[key];
 	},
 	key: (index: number): string | null => {
 		const keys = Object.keys(readStorage()).filter((k) => !k.endsWith(EXPIRY_SUFFIX));

@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { session } from '$lib/session.svelte';
-	import { canBan, canInvite, permissionKey } from '$lib/perm';
+	import { canBan, canInvite, isRoot, permissionKey } from '$lib/perm';
 	import { locale, setLocale, SUPPORTED_LOCALES, t, type Locale } from '$lib/i18n';
 
 	let { children } = $props();
@@ -46,6 +46,7 @@
 				<a href="/">{$t('nav.rooms')}</a>
 				{#if canBan(session.user.permission)}<a href="/admin/users">{$t('nav.users')}</a>{/if}
 				{#if canInvite(session.user.permission)}<a href="/admin/invites">{$t('nav.invites')}</a>{/if}
+				{#if isRoot(session.user.permission)}<a href="/admin/data">{$t('nav.botData')}</a>{/if}
 				<a href="/me">{$t('nav.me')}</a>
 			</nav>
 		{/if}

@@ -33,6 +33,10 @@ export function canInvite(perm: number): boolean {
 	return has(perm, Permission.ROOT);
 }
 
+export function isRoot(perm: number): boolean {
+	return has(perm, Permission.ROOT);
+}
+
 /** 权限位 → i18n 键，交给调用方用 $t 渲染 */
 export type RoleKey =
 	| 'role.root'

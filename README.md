@@ -15,6 +15,7 @@
 | 密码 | PBKDF2-SHA256，210000 次迭代 |
 | 前端 | SvelteKit **纯 SPA**（`adapter-static` + `ssr = false`），不含任何服务端能力 |
 | 实时 | 2 秒短轮询（`src/lib/realtime.ts`），页面隐藏时自动停止 |
+| 静态资源 | Netlify Blobs：`~rs` 用的关卡表，超级管理员可在网页上替换，不需要重新构建 |
 
 Netlify 上没有常驻进程，因此原来的 WebSocket 广播、进程内消息缓存、Bot 的阻塞式
 "等待用户下一句话" 全部改为数据库驱动：
@@ -102,91 +103,158 @@ bun run db:studio     # 图形界面
 bun run db:seed       # 幂等创建 root
 ```
 
-## 部署到 Netlify
+## 部署到 Netlify（SOP）
 
-构建命令、发布目录、函数目录都写在 `netlify.toml` 里，Netlify 会自动读取，不需要在界面上手填。
+照着做完就能上线，大约 15 分钟。构建命令、发布目录、函数目录都已经写在 `netlify.toml` 里，界面上不用填。
 
-### 1. 建站
+> 命令用 PowerShell 写。macOS / Linux 把 `$env:X = "..."` 换成 `export X=...` 即可。
 
-推荐走 Git：把仓库推到 GitHub，然后在 Netlify 里 **Add new site → Import an existing project** 选这个仓库。
+### 第 0 步：前置
 
-也可以用 CLI：
+- 一个 Netlify 账号
+- 一个 GitHub 仓库（放本项目）
+- 本机装好 Bun：`bun --version` 能出版本号
 
-```bash
-npm i -g netlify-cli
-netlify login
-netlify init          # 关联或新建站点
-```
-
-### 2. 建数据库
-
-```bash
-netlify db init       # 创建 Netlify DB（Neon Postgres），自动注入 NETLIFY_DATABASE_URL
-```
-
-### 3. 配置环境变量
-
-```bash
-netlify env:set JWT_SECRET "一长串随机字符"
-netlify env:set ROOT_PASSWORD "root 的初始密码"
-netlify env:set PUBLIC_OPERATOR "你的运营主体名称"
-```
-
-也可以在 Netlify 界面 **Site configuration → Environment variables** 里加。
-
-> `PUBLIC_OPERATOR` 是**构建期**注入、会被打进前端包的，改了必须重新构建才生效。
-
-### 4. 初始化线上数据库
-
-迁移和 seed 只需对线上库执行一次（Netlify 不会自动跑）：
+### 第 1 步：推到 GitHub
 
 ```powershell
-$env:DATABASE_URL = "从 Netlify 后台 → Environment variables 复制的 NETLIFY_DATABASE_URL"
+git remote add origin https://github.com/<你>/<仓库>.git
+git push -u origin master
+```
+
+### 第 2 步：在 Netlify 导入仓库
+
+网页 → **Add new site → Import an existing project** → 选 GitHub → 选这个仓库 → 部署。
+
+第一次构建会失败或接口报错，因为数据库还没配，正常，继续往下走。
+
+### 第 3 步：把本地目录链接到站点
+
+网页导入只绑定了「站点 ↔ 仓库」。CLI 还需要知道「本地目录 ↔ 站点」，否则后面所有命令都会说 `You don't appear to be in a folder that is linked to a project`。
+
+```powershell
+bunx netlify login
+bunx netlify link        # 选 "Use current git remote origin"，或按站点名搜索
+bunx netlify status      # 能看到站点名就成功了
+```
+
+### 第 4 步：开通数据库
+
+```powershell
+bunx netlify db init
+```
+
+> ⚠️ 这一步**只装工具链**（`@netlify/database` 等），**不会真的建库**。
+> 真正的库在后台面板：<https://app.netlify.com/projects/你的站点/database>
+
+```powershell
+bunx netlify database status   # 应显示 Netlify Database is enabled
+```
+
+### 第 5 步：复制连接串
+
+在后台 Database 面板里复制 connection string，形如：
+
+```
+postgresql://netlifydb_owner:密码@ep-xxx-pooler.区域.aws.neon.tech/neondb?sslmode=require
+```
+
+两个要点：**用带 `-pooler` 的那条**，**结尾必须带 `?sslmode=require`**。
+
+### 第 6 步：建表 + 建超管
+
+在你自己机器上执行，直接连线上库：
+
+```powershell
+$env:DATABASE_URL = "<上一步复制的连接串>"
 bun run db:migrate
-$env:ROOT_PASSWORD = "root 的初始密码"     # db:seed 只在本机读取，运行时用不到
+
+$env:ROOT_PASSWORD = "至少8位的root密码"
 bun run db:seed
 ```
 
-Linux/macOS 用 `export DATABASE_URL=...`。
+看到 `[migrate] 迁移完成` 和 `[seed] root 账号创建完成` 就成了。
 
-> `db:seed` 是幂等的：root 已存在就直接跳过。所以忘了设 `ROOT_PASSWORD` 导致没建成 root，
-> 补上密码再跑一次即可，不会重复建号。
+> `db:seed` 是幂等的，root 已存在就跳过。忘了设密码导致没建成，补上重跑一次即可。
 
-### 5. 部署
+### 第 7 步：配置环境变量
 
-- Git 方式：`git push`，Netlify 自动构建
-- CLI 方式：`netlify deploy --build --prod`
+```powershell
+bunx netlify env:set JWT_SECRET "一长串随机字符"
+bunx netlify env:set PUBLIC_OPERATOR "你的运营主体名称"
+```
 
-### 6. 验收
+| 变量 | 用在哪 | 必须 |
+| --- | --- | --- |
+| `NETLIFY_DATABASE_URL` | 函数运行时 | Netlify 数据库自动注入 |
+| `JWT_SECRET` | 函数运行时 | 是 |
+| `PUBLIC_OPERATOR` | **构建期**，会被打进前端包 | 建议 |
+| `ROOT_PASSWORD` | 只在 `db:seed` 时用一次 | 否 |
 
-```bash
-# 配置自检：只报告环境变量有没有，不泄露具体值
+`ROOT_PASSWORD` **不要**加到 Netlify 上——运行时根本读不到也不需要，加了纯属摆设。
+
+### 第 8 步：重新部署让变量生效
+
+**改完环境变量必须重新部署**，否则函数还在读旧值。
+
+```powershell
+git commit --allow-empty -m "chore: 重新构建以应用环境变量"
+git push
+```
+
+或者网页 **Deploys → Trigger deploy → Deploy site**。
+
+### 第 9 步：验收
+
+```powershell
 curl https://<你的站点>/api/health
 # {"ok":true,"database":"configured","jwt":"configured",...}
 
-# 连通性自检：真正连一次数据库
 curl "https://<你的站点>/api/health?deep=1"
 # {"ok":true,...,"dbPing":"ok"}
 ```
 
-然后打开站点，用 root 登录，去「邀请码」页生成一个邀请码。
+| 返回 | 含义 |
+| --- | --- |
+| `database: configured` + `dbPing: ok` | 全部正常 |
+| `database: missing` | 环境变量没生效，回第 8 步 |
+| 返回 HTML | 函数没挂上，看第 11 步 |
 
-### 部署要点
+最后打开站点，用 `root` + 第 6 步的密码登录，去「邀请码」页生成一个邀请码，才能注册第二个账号。
 
-- API 通过 `netlify/functions/api.ts` 的 `config.path = '/api/*'` 直接挂载，不走重定向
-- `netlify/functions/cleanup.ts` 带 `config.schedule = '@daily'`，每天物理删除超过 7 天保留期的消息
-- Netlify Functions 是无状态、按次计费的，前端 2 秒轮询会持续占用调用次数，小站可接受，人多要留意账单
+### 第 10 步：更新关卡数据（不需要重新构建）
 
-### 常见故障
+游戏用的关卡表默认打包在构建产物里。换新版本：
+
+1. 用 root 登录，点顶栏 **关卡数据**
+2. 选择 `localStorage.json`（必须是包含 `rswiki:NavLevel-data` 和 `rswiki:NavLevel-difficulty` 的对象）
+3. 点 **上传并替换**
+
+数据存进 **Netlify Blobs**，此后更新都不再消耗构建次数。
+
+> 已预热的函数实例仍持有旧数据，**要等下一次冷启动才生效**。低流量时段可能几分钟，可以过一会儿刷新页面重试。
+
+### 第 11 步：排障
 
 | 现象 | 排查方向 |
 | --- | --- |
-| `/api/health` 返回 HTML 而不是 JSON | 函数没被识别。确认 Functions 页签里有 `api`，且 `netlify.toml` 的 `functions` 目录正确 |
-| `/api/*` 一律 502 | 函数启动即崩。先看 Functions → api → Logs；数据库连接串缺失是最常见原因 |
-| 函数返回 500 `缺少数据库连接串…` | `NETLIFY_DATABASE_URL` 没注入。重新 `netlify db init`，或在环境变量里手动加 |
-| 登录报「用户名或密码错误」但确定密码对 | root 没建成功。确认 `db:migrate` 和 `db:seed` 都对着线上库跑过 |
-| 安装依赖阶段失败 | Netlify 没识别到 Bun。在环境变量里加 `BUN_VERSION`，或把构建命令改成 `bun install && bun run build` |
-| 页面能开但所有请求 401 | Cookie 没带过去。同域部署默认没问题，自定义域名请确认走的是 HTTPS |
+| CLI 说 `not linked to a project` | 没跑第 3 步，或在错误的目录下执行 |
+| `netlify env:list` 里没有 `NETLIFY_DATABASE_URL` | 该命令默认只看 dev 上下文；受管变量也不在这里列。以 `/api/health` 的结果为准 |
+| `/api/health` 返回 HTML 而不是 JSON | 函数没挂上。确认 Functions 页签里有 `api`，`netlify.toml` 的 `functions` 目录正确 |
+| `/api/*` 一律 502 | 函数启动即崩。先看 Functions → api → Logs；数据库连接串缺失最常见 |
+| 函数返回 500 `缺少数据库连接串…` | 环境变量没注入，或没重新部署（第 8 步） |
+| 登录报「用户名或密码错误」但密码确定对 | root 没建成。确认第 6 步的 `db:migrate`、`db:seed` 都跑过 |
+| 改完环境变量没反应 | 必须重新部署（第 8 步）才生效 |
+| 安装依赖阶段失败 | Netlify 没识别 Bun。加环境变量 `BUN_VERSION`，或把构建命令改成 `bun install && bun run build` |
+| 页面能开但所有请求 401 | Cookie 没带上。同域部署没问题；自定义域名确认走 HTTPS |
+| 关卡数据上传成功但 `~rs` 没变 | 已预热的函数实例还在用旧数据，等冷启动 |
+
+### 部署要点（备忘）
+
+- API 通过 `netlify/functions/api.ts` 的 `config.path = '/api/*'` 直接挂载，不走重定向
+- `netlify/functions/cleanup.ts` 带 `config.schedule = '@daily'`，每天物理删除超过 7 天保留期的消息
+- 关卡数据存 Netlify Blobs，与代码解耦，更新不消耗构建
+- Netlify Functions 无状态、按调用计费，前端 2 秒轮询会持续消耗调用次数；小站可接受，人多要留意账单
 
 ## Bot 游戏
 
@@ -200,7 +268,7 @@ curl "https://<你的站点>/api/health?deep=1"
 | 进程内保存游戏状态 | `bot_sessions.state` 存 `{ command, text, trigger, transcript, emitted, seed }` |
 | `Math.random()` 选答案 | 会话带固定种子，回放期间接管 `Math.random`，保证每次重跑结果一致 |
 | `sendPack` 每 100 条 sleep 2 秒 | 直接入缓冲，落库时同 `batchId` 分组，前端折叠展示 |
-| `fs` 读写 `alias.json` / `localStorage.json` | 打包时内联成只读 JSON，写入落内存 |
+| `fs` 读写 `alias.json` / `localStorage.json` | `alias.json` 打包内联；关卡数据放 Netlify Blobs，构建期内联一份兜底基线 |
 
 回放的去重靠 `emitted` 水位线：转录只追加不修改，重跑产出一定是上一轮的超集，`slice(emitted)` 就是本轮新增。
 

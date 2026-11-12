@@ -16,6 +16,7 @@ export interface I18nMapping {
 	"nav.invites": never;
 	"nav.me": never;
 	"nav.logout": never;
+	"nav.botData": never;
 	"role.root": never;
 	"role.manage": never;
 	"role.mod": never;
@@ -116,5 +117,21 @@ export interface I18nMapping {
 	"tos.agree": never;
 	"tos.view": never;
 	"tos.required": never;
+	"botData.title": never;
+	"botData.desc": never;
+	"botData.source": never;
+	"botData.sourceBlob": never;
+	"botData.sourceBundled": never;
+	"botData.updatedAt": never;
+	"botData.uploadedBy": never;
+	"botData.size": never;
+	"botData.keys": never;
+	"botData.choose": never;
+	"botData.upload": never;
+	"botData.uploading": never;
+	"botData.success": never;
+	"botData.notRoot": never;
+	"botData.needFile": never;
+	"botData.badJson": never;
 	"operatorFallback": never;
 }

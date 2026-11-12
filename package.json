@@ -23,6 +23,7 @@
     "db:seed": "bun run src/db/seed.ts"
   },
   "dependencies": {
+    "@netlify/blobs": "^11.1.9",
     "@netlify/database": "^2.0.3",
     "drizzle-orm": "^0.44.0",
     "hono": "^4.6.0",
